@@ -29,13 +29,15 @@ public:
     virtual void ccTouchesEnded(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent);
     virtual void ccTouchesCancelled(cocos2d::CCSet *pTouches, cocos2d::CCEvent *pEvent);
 private:
+    float GetAverageDistanceTouchSet(cocos2d::CCSet *pTouches);
     cocos2d::CCPoint GetAverageLocationInViewTouchSet(cocos2d::CCSet *pTouches);
-    bool IsMapPositionStretched(const cocos2d::CCPoint& ptPosition);
 
-    cocos2d::CCSprite* m_pMapSprite;
+    cocos2d::CCNode*   m_pMapNode;
     cocos2d::CCPoint   m_ptTouchCenter;
 
+    cocos2d::CCSet     m_setTouches;
     bool               m_bIsZooming;
+    float              m_fTouchDistance;
     float			   m_fDefaultScale;
     float              m_fMinMapX;
     float              m_fMaxMapX;
