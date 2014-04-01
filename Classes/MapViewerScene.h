@@ -37,6 +37,7 @@ private:
 
     cocos2d::CCNode*   m_pMapNode;
     cocos2d::CCPoint   m_ptTouchCenter;
+    cocos2d::CCPoint   m_vVelocity;
     cocos2d::CCSize    m_mapSize;
 
     cocos2d::CCSet     m_setTouches;

@@ -9,11 +9,12 @@ MapViewerScene::MapViewerScene() :
     m_pLocationDialog(NULL),
     m_pMapNode(NULL),
     m_ptTouchCenter(CCPointZero),
+    m_vVelocity(CCPointZero),
     m_mapSize(CCSizeZero),
     m_bIsZooming(false),
     m_fTouchDistance(0.0f),
     m_fMinScale(0.0f),
-    m_fMaxScale(5.0f),
+    m_fMaxScale(4.0f),
     m_fMinMapX(0.0f),
     m_fMaxMapX(0.0f),
     m_fMinMapY(0.0f),
@@ -117,7 +118,8 @@ bool MapViewerScene::init()
     m_pMapNode->setContentSize(m_mapSize);
     
     // position the sprite on the center of the screen
-    m_pMapNode->setPosition(ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
+    CCPoint ptCenter = ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y);
+    m_pMapNode->setPosition(ptCenter);
 
     //scale so that largest dimension is used
     float fWidthScale  = visibleSize.width / m_pMapNode->getContentSize().width;
@@ -126,10 +128,10 @@ bool MapViewerScene::init()
     m_fMinScale = fWidthScale > fHeightScale ? fWidthScale : fHeightScale;
     m_pMapNode->setScale(m_fMinScale);
 
-    m_fMinMapX = m_pMapNode->getPositionX() - (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f + visibleSize.width / 2.0f;
-    m_fMaxMapX = m_pMapNode->getPositionX() + (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f - visibleSize.width / 2.0f;
-    m_fMinMapY = m_pMapNode->getPositionY() - (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f + visibleSize.height / 2.0f;
-    m_fMaxMapY = m_pMapNode->getPositionY() + (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f - visibleSize.height / 2.0f;
+    m_fMinMapX = ptCenter.x - (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f + visibleSize.width / 2.0f;
+    m_fMaxMapX = ptCenter.x + (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f - visibleSize.width / 2.0f;
+    m_fMinMapY = ptCenter.y - (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f + visibleSize.height / 2.0f;
+    m_fMaxMapY = ptCenter.y + (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f - visibleSize.height / 2.0f;
 
     // add the sprite as a child to this layer
     this->addChild(m_pMapNode, 0);
@@ -155,19 +157,13 @@ void MapViewerScene::menuCloseCallback(CCObject* pSender)
 
 void MapViewerScene::update(float delta)
 {
-//    if (m_bIsZooming)
-//    {
-//        CCPoint ptCenter = CCDirector::sharedDirector()->convertToGL(m_ptTouchCenter);
-//        CCPoint ptDiff = ccpSub(ptCenter, m_pMapNode->getPosition());
-//
-//        float fScaleDiff = 0.5f * delta;
-//        m_pMapNode->setScale(m_pMapNode->getScale() * (1.0f + fScaleDiff));
-//
-//        ptDiff.x *= fScaleDiff;
-//        ptDiff.y *= fScaleDiff;
-//
-//        m_pMapNode->setPosition(ccpSub(m_pMapNode->getPosition(), ptDiff));
-//    }
+    if (m_setTouches.count() == 0 && (m_vVelocity.x != 0.0f || m_vVelocity.y != 0.0f))
+    {
+        //m_vVelocity.x *= 0.6f;
+        //m_vVelocity.y *= 0.6f;
+        
+        //m_pMapNode->setPosition(ccpAdd(m_pMapNode->getPosition(), m_vVelocity * 150.0f * delta));
+    }
 }
 
 void MapViewerScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
@@ -177,34 +173,16 @@ void MapViewerScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
         m_setTouches.addObject(*it);
     }
     
+    m_vVelocity = CCPointZero;
     m_ptTouchCenter = GetAverageLocationInViewTouchSet(&m_setTouches);
-
     m_fTouchDistance = GetAverageDistanceTouchSet(&m_setTouches);
     //m_bIsZooming = true;
+    
+    m_pMapNode->stopAllActions();
 }
 
 void MapViewerScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
 {
-    //adjust the translation of the map based on the touches
-    CCPoint ptInView = GetAverageLocationInViewTouchSet(&m_setTouches);
-    CCPoint ptDiff = ccpSub(ptInView, m_ptTouchCenter);
-    ptDiff.y = -ptDiff.y;
-
-    //cause resistance when the map is off the edge
-    if (m_pMapNode->getPosition().x < m_fMinMapX - m_fStretchVariance  || m_pMapNode->getPosition().x > m_fMaxMapX + m_fStretchVariance)
-    {
-        ptDiff.x /= m_fResistance;
-    }
-    
-    if (m_pMapNode->getPosition().y  < m_fMinMapY - m_fStretchVariance || m_pMapNode->getPosition().y > m_fMaxMapY + m_fStretchVariance)
-    {
-        ptDiff.y /= m_fResistance;
-    }
-    
-    m_ptTouchCenter = ptInView;
-    m_pMapNode->setPosition(ccpAdd(m_pMapNode->getPosition(), ptDiff));
-    
-    
     //adjust the scale of the map based touches
     if (m_setTouches.count() > 1)
     {
@@ -224,11 +202,14 @@ void MapViewerScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
         }
         
         if (fScale > m_fMinScale - 0.1f &&
-            fScale < m_fMaxScale + 0.1f)
+            fScale < m_fMaxScale + 1.5f)
         {
             m_pMapNode->setScale(fScale);
         }
-        
+        else
+        {
+            fDistance = m_fTouchDistance;
+        }
 
         float fScaleDiff = (fDistance / m_fTouchDistance) - 1.0f;
         ptDiffFromNodePos.x *= fScaleDiff;
@@ -237,6 +218,37 @@ void MapViewerScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
         m_pMapNode->setPosition(ccpSub(m_pMapNode->getPosition(), ptDiffFromNodePos));
         m_fTouchDistance = fDistance;
     }
+
+    CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
+    CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+    CCPoint ptCenter = ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y);
+    m_fMinMapX = ptCenter.x - (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f + visibleSize.width / 2.0f;
+    m_fMaxMapX = ptCenter.x + (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f - visibleSize.width / 2.0f;
+    m_fMinMapY = ptCenter.y - (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f + visibleSize.height / 2.0f;
+    m_fMaxMapY = ptCenter.y + (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f - visibleSize.height / 2.0f;
+
+    //adjust the translation of the map based on the touches
+    CCPoint ptInView = GetAverageLocationInViewTouchSet(&m_setTouches);
+    CCPoint ptDiff = ccpSub(ptInView, m_ptTouchCenter);
+    ptDiff.y = -ptDiff.y;
+    
+    m_vVelocity = ccpAdd(m_vVelocity, ptDiff);
+
+    //cause resistance when the map is off the edge
+    if (m_pMapNode->getPosition().x < m_fMinMapX - m_fStretchVariance  || m_pMapNode->getPosition().x > m_fMaxMapX + m_fStretchVariance)
+    {
+        ptDiff.x /= m_fResistance;
+        m_vVelocity.x = 0.0f;
+    }
+    
+    if (m_pMapNode->getPosition().y  < m_fMinMapY - m_fStretchVariance || m_pMapNode->getPosition().y > m_fMaxMapY + m_fStretchVariance)
+    {
+        ptDiff.y /= m_fResistance;
+        m_vVelocity.y = 0.0f;
+    }
+    
+    m_ptTouchCenter = ptInView;
+    m_pMapNode->setPosition(ccpAdd(m_pMapNode->getPosition(), ptDiff));
 }
 
 void MapViewerScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
@@ -244,23 +256,43 @@ void MapViewerScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
     for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); it++)
     {
         m_setTouches.removeObject(*it);
-
-        CCTouch* touch = dynamic_cast<CCTouch*>(*it);
-        CCPoint ptTouch = m_pMapNode->convertTouchToNodeSpace(touch);
-        CCLOG("Touch at: %f, %f", ptTouch.x, ptTouch.y);
     }
+    
+    m_vVelocity = CCPointZero;
+    m_ptTouchCenter = GetAverageLocationInViewTouchSet(&m_setTouches);
+    m_fTouchDistance = GetAverageDistanceTouchSet(&m_setTouches);
     
     //m_bIsZooming = false;
     if (m_setTouches.count() == 0)
     {
+        CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
         CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
-        m_fMinMapX = m_pMapNode->getPositionX() - (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f + visibleSize.width / 2.0f;
-        m_fMaxMapX = m_pMapNode->getPositionX() + (m_pMapNode->getContentSize().width  * m_pMapNode->getScale()) / 2.0f - visibleSize.width / 2.0f;
-        m_fMinMapY = m_pMapNode->getPositionY() - (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f + visibleSize.height / 2.0f;
-        m_fMaxMapY = m_pMapNode->getPositionY() + (m_pMapNode->getContentSize().height * m_pMapNode->getScale()) / 2.0f - visibleSize.height / 2.0f;
+        CCPoint ptCenter = ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y);
+        
+        CCPoint ptCenterGL = CCDirector::sharedDirector()->convertToGL(ptCenter);
+        CCPoint ptDiffFromNodePos = ccpSub(ptCenterGL, m_pMapNode->getPosition());
+        
+        float fTargetScale = m_pMapNode->getScale();
+        if (m_pMapNode->getScale() < m_fMinScale)
+        {
+            m_pMapNode->runAction(CCEaseInOut::create(CCScaleTo::create(0.25f, m_fMinScale), 4.0f));
+            fTargetScale = m_fMinScale;
+        }
+        else if (m_pMapNode->getScale() > m_fMaxScale)
+        {
+            m_pMapNode->runAction(CCEaseInOut::create(CCScaleTo::create(0.25f, m_fMaxScale), 4.0f));
+            fTargetScale = m_fMaxScale;
+        }
+        
+        m_fMinMapX = ptCenter.x - (m_pMapNode->getContentSize().width  * fTargetScale) / 2.0f + visibleSize.width / 2.0f;
+        m_fMaxMapX = ptCenter.x + (m_pMapNode->getContentSize().width  * fTargetScale) / 2.0f - visibleSize.width / 2.0f;
+        m_fMinMapY = ptCenter.y - (m_pMapNode->getContentSize().height * fTargetScale) / 2.0f + visibleSize.height / 2.0f;
+        m_fMaxMapY = ptCenter.y + (m_pMapNode->getContentSize().height * fTargetScale) / 2.0f - visibleSize.height / 2.0f;
 
-    
-        CCPoint ptAdjust = m_pMapNode->getPosition();
+        float fScaleDiff = (fTargetScale / m_pMapNode->getScale()) - 1.0f;
+        ptDiffFromNodePos.x *= fScaleDiff;
+        ptDiffFromNodePos.y *= fScaleDiff;
+        CCPoint ptAdjust = ccpSub(m_pMapNode->getPosition(), ptDiffFromNodePos);
         if (ptAdjust.x < m_fMinMapX)
         {
             ptAdjust.x = m_fMinMapX;
@@ -280,17 +312,6 @@ void MapViewerScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
         }
 
         m_pMapNode->runAction(CCEaseInOut::create(CCMoveTo::create(0.25f, ptAdjust), 4.0f));
-        
-        if (m_pMapNode->getScale() < m_fMinScale)
-        {
-            m_pMapNode->runAction(CCEaseInOut::create(CCScaleTo::create(0.25f, m_fMinScale), 4.0f));
-        }
-        else if (m_pMapNode->getScale() > m_fMaxScale)
-        {
-            m_pMapNode->runAction(CCEaseInOut::create(CCScaleTo::create(0.25f, m_fMaxScale), 4.0f));
-        }
-
-        CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
         if (!m_pLocationDialog)
         {
@@ -317,32 +338,32 @@ void MapViewerScene::ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent)
 
 float MapViewerScene::GetAverageDistanceTouchSet(cocos2d::CCSet *pTouches)
 {
-    if (pTouches->count() == 1)
-    {
-        return 0;
-    }
-    else if (pTouches->count() == 2)
-    {
-        CCSetIterator it = pTouches->begin();
-        CCTouch* touch = dynamic_cast<CCTouch*>(*it);
-        CCPoint ptFirst = touch->getLocationInView();
-        ++it;
-        touch = dynamic_cast<CCTouch*>(*it);
-        
-        return ccpDistance(ptFirst, touch->getLocationInView());
-    }
-    
-    return 0;
-    
-//    float fDistance = 0.0f;
-//    CCPoint ptCenter = GetAverageLocationInViewTouchSet(pTouches);
-//    for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); it++)
+//    if (pTouches->count() == 1)
 //    {
+//        return 0;
+//    }
+//    else if (pTouches->count() == 2)
+//    {
+//        CCSetIterator it = pTouches->begin();
 //        CCTouch* touch = dynamic_cast<CCTouch*>(*it);
-//        fDistance += ccpDistance(touch->getLocationInView(), ptCenter);
+//        CCPoint ptFirst = touch->getLocationInView();
+//        ++it;
+//        touch = dynamic_cast<CCTouch*>(*it);
+//        
+//        return ccpDistance(ptFirst, touch->getLocationInView());
 //    }
 //    
-//    return fDistance;
+//    return 0;
+//    
+    float fDistance = 0.0f;
+    CCPoint ptCenter = GetAverageLocationInViewTouchSet(pTouches);
+    for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); it++)
+    {
+        CCTouch* touch = dynamic_cast<CCTouch*>(*it);
+        fDistance += ccpDistance(touch->getLocationInView(), ptCenter);
+    }
+    
+    return fDistance;
 }
 
 CCPoint MapViewerScene::GetAverageLocationInViewTouchSet(cocos2d::CCSet *pTouches)
