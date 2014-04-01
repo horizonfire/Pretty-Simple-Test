@@ -1,13 +1,15 @@
-#include "HelloWorldScene.h"
+#include "MapViewerScene.h"
 
 USING_NS_CC;
 
 #define TILE_X 4
 #define TILE_Y 5
 
-HelloWorld::HelloWorld() :
+MapViewerScene::MapViewerScene() :
+    m_pLocationDialog(NULL),
     m_pMapNode(NULL),
-    m_ptTouchCenter(0.0f, 0.0f),
+    m_ptTouchCenter(CCPointZero),
+    m_mapSize(CCSizeZero),
     m_bIsZooming(false),
     m_fMinMapX(0.0f),
     m_fMaxMapX(0.0f),
@@ -19,18 +21,18 @@ HelloWorld::HelloWorld() :
     scheduleUpdate();
 }
 
-HelloWorld::~HelloWorld()
+MapViewerScene::~MapViewerScene()
 {
     unscheduleUpdate();
 }
 
-CCScene* HelloWorld::scene()
+CCScene* MapViewerScene::scene()
 {
     // 'scene' is an autorelease object
     CCScene *scene = CCScene::create();
     
     // 'layer' is an autorelease object
-    HelloWorld *layer = HelloWorld::create();
+    MapViewerScene *layer = MapViewerScene::create();
 
     // add layer as a child to scene
     scene->addChild(layer);
@@ -40,7 +42,7 @@ CCScene* HelloWorld::scene()
 }
 
 // on "init" you need to initialize your instance
-bool HelloWorld::init()
+bool MapViewerScene::init()
 {
     //////////////////////////////
     // 1. super init first
@@ -89,21 +91,18 @@ bool HelloWorld::init()
     // add "HelloWorld" splash screen"
     m_pMapNode = CCNode::create();
     
-    CCSize contentSize = CCSizeZero;
+    m_mapSize.setSize(3398, 4842);
     char buf[256];
     for (int iY = 0; iY < TILE_Y; ++iY)
     {
         for (int iX = 0; iX < TILE_X; ++iX)
         {
-            sprintf(buf, "new_york_map-%i-%i.png", iY, iX);
+            sprintf(buf, "new_york_map_%02i.png", iX + TILE_X * iY + 1);
             CCSprite* pSpriteTile = CCSprite::create(buf);
             
-            contentSize.width  = pSpriteTile->getContentSize().width  * TILE_X;
-            contentSize.height = pSpriteTile->getContentSize().height * TILE_Y;
-            
             CCPoint ptPos = CCPointZero;
-            ptPos.x = -contentSize.width / 2.0f + pSpriteTile->getContentSize().width  * (iX + 0.5f);
-            ptPos.y = contentSize.height / 2.0f - pSpriteTile->getContentSize().height * (iY + 0.5f);
+            ptPos.x = -m_mapSize.width / 2.0f + pSpriteTile->getContentSize().width  * (iX + 0.5f);
+            ptPos.y = m_mapSize.height / 2.0f - pSpriteTile->getContentSize().height * (iY + 0.5f);
             
             m_pMapNode->addChild(pSpriteTile);
             
@@ -111,7 +110,7 @@ bool HelloWorld::init()
         }
     }
     
-    m_pMapNode->setContentSize(contentSize);
+    m_pMapNode->setContentSize(m_mapSize);
     
     // position the sprite on the center of the screen
     m_pMapNode->setPosition(ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
@@ -137,7 +136,7 @@ bool HelloWorld::init()
 }
 
 
-void HelloWorld::menuCloseCallback(CCObject* pSender)
+void MapViewerScene::menuCloseCallback(CCObject* pSender)
 {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
     CCMessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
@@ -150,7 +149,7 @@ void HelloWorld::menuCloseCallback(CCObject* pSender)
 }
 
 
-void HelloWorld::update(float delta)
+void MapViewerScene::update(float delta)
 {
 //    if (m_bIsZooming)
 //    {
@@ -167,7 +166,7 @@ void HelloWorld::update(float delta)
 //    }
 }
 
-void HelloWorld::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
+void MapViewerScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
 {
     for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); it++)
     {
@@ -180,7 +179,7 @@ void HelloWorld::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
     //m_bIsZooming = true;
 }
 
-void HelloWorld::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
+void MapViewerScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
 {
     //adjust the translation of the map based on the touches
     CCPoint ptInView = GetAverageLocationInViewTouchSet(pTouches);
@@ -221,11 +220,15 @@ void HelloWorld::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
     }
 }
 
-void HelloWorld::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
+void MapViewerScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
 {
     for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); it++)
     {
         m_setTouches.removeObject(*it);
+
+        CCTouch* touch = dynamic_cast<CCTouch*>(*it);
+        CCPoint ptTouch = m_pMapNode->convertTouchToNodeSpace(touch);
+        CCLOG("Touch at: %f, %f", ptTouch.x, ptTouch.y);
     }
     
     //m_bIsZooming = false;
@@ -251,15 +254,35 @@ void HelloWorld::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
         }
 
         m_pMapNode->runAction(CCEaseInOut::create(CCMoveTo::create(0.25f, ptAdjust), 4.0f));
+
+
+        CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+        CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
+
+        if (!m_pLocationDialog)
+        {
+            m_pLocationDialog = LocationDialog::create();
+
+            m_pLocationDialog->setPosition(ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
+            addChild(m_pLocationDialog, 0);
+
+            m_pLocationDialog->setTintColor(ccc3(255, 0, 0));
+            m_pLocationDialog->ShowDialog();
+        }
+        else
+        {
+            m_pLocationDialog->HideDialog();
+            m_pLocationDialog = NULL;
+        }
     }
 }
 
-void HelloWorld::ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent)
+void MapViewerScene::ccTouchesCancelled(CCSet *pTouches, CCEvent *pEvent)
 {
     ccTouchesEnded(pTouches, pEvent);
 }
 
-float HelloWorld::GetAverageDistanceTouchSet(cocos2d::CCSet *pTouches)
+float MapViewerScene::GetAverageDistanceTouchSet(cocos2d::CCSet *pTouches)
 {
     float fDistance = 0.0f;
     CCPoint ptCenter = GetAverageLocationInViewTouchSet(pTouches);
@@ -272,7 +295,7 @@ float HelloWorld::GetAverageDistanceTouchSet(cocos2d::CCSet *pTouches)
     return fDistance;
 }
 
-CCPoint HelloWorld::GetAverageLocationInViewTouchSet(cocos2d::CCSet *pTouches)
+CCPoint MapViewerScene::GetAverageLocationInViewTouchSet(cocos2d::CCSet *pTouches)
 {
     CCPoint ptAverage = CCPointZero;
     for (CCSetIterator it = pTouches->begin(); it != pTouches->end(); it++)

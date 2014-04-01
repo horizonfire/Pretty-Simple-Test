@@ -1,13 +1,14 @@
-#ifndef __HELLOWORLD_SCENE_H__
-#define __HELLOWORLD_SCENE_H__
+#ifndef __MAPVIEWER_SCENE_H__
+#define __MAPVIEWER_SCENE_H__
 
 #include "cocos2d.h"
+#include "LocationDialog.h"
 
-class HelloWorld : public cocos2d::CCLayer
+class MapViewerScene : public cocos2d::CCLayer
 {
 public:
-    HelloWorld();
-    virtual ~HelloWorld();
+    MapViewerScene();
+    virtual ~MapViewerScene();
 
     // Here's a difference. Method 'init' in cocos2d-x returns bool, instead of returning 'id' in cocos2d-iphone
     virtual bool init();  
@@ -19,7 +20,7 @@ public:
     void menuCloseCallback(CCObject* pSender);
     
     // implement the "static node()" method manually
-    CREATE_FUNC(HelloWorld);
+    CREATE_FUNC(MapViewerScene);
 
 
     virtual void update(float delta);
@@ -32,8 +33,11 @@ private:
     float GetAverageDistanceTouchSet(cocos2d::CCSet *pTouches);
     cocos2d::CCPoint GetAverageLocationInViewTouchSet(cocos2d::CCSet *pTouches);
 
+    LocationDialog*    m_pLocationDialog;
+
     cocos2d::CCNode*   m_pMapNode;
     cocos2d::CCPoint   m_ptTouchCenter;
+    cocos2d::CCSize    m_mapSize;
 
     cocos2d::CCSet     m_setTouches;
     bool               m_bIsZooming;
@@ -48,4 +52,4 @@ private:
     float              m_fStretchVariance;
 };
 
-#endif // __HELLOWORLD_SCENE_H__
+#endif // __MAPVIEWER_SCENE_H__
