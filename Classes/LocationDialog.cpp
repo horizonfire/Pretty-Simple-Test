@@ -42,7 +42,7 @@ bool LocationDialog::init()
     addChild(m_pArrowSprite, 0);
 
     //add the text label
-    m_pTextLabel = CCLabelTTF::create("Hello World\nHello World\nHello World", "Arial", 20.0f);
+    m_pTextLabel = CCLabelTTF::create("Hello World\nHello World\nHello World", "Arial", LABEL_FONT_SIZE);
     m_pTextLabel->setColor(ccc3(0,0,0));
     addChild(m_pTextLabel, 0);
 

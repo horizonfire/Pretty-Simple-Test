@@ -42,13 +42,15 @@ private:
     cocos2d::CCSet     m_setTouches;
     bool               m_bIsZooming;
     float              m_fTouchDistance;
-    float			   m_fDefaultScale;
+    float			   m_fMinScale;
+    float              m_fMaxScale;
     float              m_fMinMapX;
     float              m_fMaxMapX;
     float              m_fMinMapY;
     float              m_fMaxMapY;
 
     float              m_fResistance;
+    float              m_fResistanceScale;
     float              m_fStretchVariance;
 };
 

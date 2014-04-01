@@ -2,7 +2,7 @@
 #define __LOCATION_DIALOG_H__
 
 #include "cocos2d.h"
-#include "..\extensions\GUI\CCControlExtension\CCScale9Sprite.h"
+#include "../extensions/GUI/CCControlExtension/CCScale9Sprite.h"
 
 class LocationDialog : public cocos2d::CCNode
 {
