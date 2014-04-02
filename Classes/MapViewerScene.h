@@ -32,6 +32,8 @@ public:
 private:
     float GetAverageDistanceTouchSet(cocos2d::CCSet *pTouches);
     cocos2d::CCPoint GetAverageLocationInViewTouchSet(cocos2d::CCSet *pTouches);
+    
+    void ShowLocationDialogCallback();
 
     LocationDialog*    m_pLocationDialog;
 

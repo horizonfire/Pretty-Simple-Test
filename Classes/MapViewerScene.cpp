@@ -364,10 +364,18 @@ void MapViewerScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
                 
                 ptDiffFromNodePos = ccpSub(ptDialog, ptCenterGL);
                 ptAdjust = ccpSub(m_pMapNode->getPosition(), ptDiffFromNodePos);
-                m_pMapNode->runAction(CCEaseInOut::create(CCMoveTo::create(0.7f, ptAdjust), 4.0f));
+                m_pMapNode->runAction(
+                    CCSequence::create(
+                        CCEaseInOut::create(CCMoveTo::create(0.7f, ptAdjust), 4.0f),
+                        CCCallFunc::create(this, callfunc_selector(MapViewerScene::ShowLocationDialogCallback)),
+                        NULL
+                    )
+                );
             }
-            
-            m_pLocationDialog->ShowDialog();
+            else
+            {
+                m_pLocationDialog->ShowDialog();
+            }
         }
     }
 }
@@ -405,4 +413,9 @@ CCPoint MapViewerScene::GetAverageLocationInViewTouchSet(cocos2d::CCSet *pTouche
         ptAverage.y /= pTouches->count();
     }
     return ptAverage;
+}
+
+void MapViewerScene::ShowLocationDialogCallback()
+{
+    m_pLocationDialog->ShowDialog();
 }
