@@ -16,7 +16,8 @@ public:
 
     void ShowDialog();
     void HideDialog();
-
+    
+    void setText(const char* pszString);
     void setTintColor(const cocos2d::ccColor3B& color);
     void setFontColor(const cocos2d::ccColor3B& color);
 

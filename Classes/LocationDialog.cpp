@@ -42,14 +42,13 @@ bool LocationDialog::init()
     addChild(m_pArrowSprite, 0);
 
     //add the text label
-    m_pTextLabel = CCLabelTTF::create("Hello World\nHello World\nHello World", "Arial", LABEL_FONT_SIZE);
+    m_pTextLabel = CCLabelTTF::create("", "Arial", LABEL_FONT_SIZE);
     m_pTextLabel->setColor(ccc3(0,0,0));
     addChild(m_pTextLabel, 0);
 
-    m_pBackgroundSprite->setContentSize(m_pTextLabel->getContentSize() + CCSizeMake(20, 20));
+    m_pBackgroundSprite->setContentSize(m_pTextLabel->getContentSize() + CCSizeMake(50, 40));
 
     //layout the various elements
-
     CCPoint ptTextPos = m_pArrowSprite->getPosition();
     ptTextPos.y += (m_pBackgroundSprite->getContentSize().height + m_pArrowSprite->getContentSize().height) / 2.0f - 1.0f;
     m_pTextLabel->setPosition(ptTextPos);
@@ -86,10 +85,22 @@ void LocationDialog::HideDialog()
             CCScaleTo::create(0.1f, 0.0f, 0.0f),
             //CCOrbitCamera::create(0.2f, 1.0f, 0.0f, 0.0f, -90.0f, 0.0f, 0.0f),
             CCHide::create(),
-            CCRemoveSelf::create(),
             NULL
         )
     );
+}
+
+
+void LocationDialog::setText(const char* pszString)
+{
+    m_pTextLabel->setString(pszString);
+    m_pBackgroundSprite->setContentSize(m_pTextLabel->getContentSize() + CCSizeMake(50, 40));
+
+    //layout the various elements
+    CCPoint ptTextPos = m_pArrowSprite->getPosition();
+    ptTextPos.y += (m_pBackgroundSprite->getContentSize().height + m_pArrowSprite->getContentSize().height) / 2.0f - 1.0f;
+    m_pTextLabel->setPosition(ptTextPos);
+    m_pBackgroundSprite->setPosition(ptTextPos);
 }
 
 void LocationDialog::setTintColor(const ccColor3B& color)

@@ -25,6 +25,7 @@
 		288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765A40DF7441C002DB57D /* CoreGraphics.framework */; };
 		7855E0E1153FEF240059DD9A /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 7855E0DF153FEF240059DD9A /* Default.png */; };
 		9F1735FA18E7D91B0076E373 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9F1735F918E7D91A0076E373 /* Images.xcassets */; };
+		9F854B3818EC7E9000EDDB8B /* madisonsqgarden_select.png in Resources */ = {isa = PBXBuildFile; fileRef = 9F854B3718EC7E9000EDDB8B /* madisonsqgarden_select.png */; };
 		9FD4F9D118E80CAE00C67C9E /* new_york_map.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 9FD4F9D018E80CAE00C67C9E /* new_york_map.jpg */; };
 		9FD8D9B718EB23DE00748E3D /* MapViewerScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9FD8D9B518EB23DE00748E3D /* MapViewerScene.cpp */; };
 		9FD8D9CC18EB241C00748E3D /* new_york_map_01.png in Resources */ = {isa = PBXBuildFile; fileRef = 9FD8D9B818EB241C00748E3D /* new_york_map_01.png */; };
@@ -125,6 +126,7 @@
 		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		7855E0DF153FEF240059DD9A /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = SOURCE_ROOT; };
 		9F1735F918E7D91A0076E373 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = PrettySimpleTest/Images.xcassets; sourceTree = SOURCE_ROOT; };
+		9F854B3718EC7E9000EDDB8B /* madisonsqgarden_select.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = madisonsqgarden_select.png; sourceTree = "<group>"; };
 		9FD4F9D018E80CAE00C67C9E /* new_york_map.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = new_york_map.jpg; sourceTree = "<group>"; };
 		9FD8D9B518EB23DE00748E3D /* MapViewerScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MapViewerScene.cpp; path = ../Classes/MapViewerScene.cpp; sourceTree = "<group>"; };
 		9FD8D9B618EB23DE00748E3D /* MapViewerScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MapViewerScene.h; path = ../Classes/MapViewerScene.h; sourceTree = "<group>"; };
@@ -336,6 +338,7 @@
 			isa = PBXGroup;
 			children = (
 				9F1735F918E7D91A0076E373 /* Images.xcassets */,
+				9F854B3718EC7E9000EDDB8B /* madisonsqgarden_select.png */,
 				9FD8D9E018EB242900748E3D /* dialogarrow.png */,
 				9FD8D9E118EB242900748E3D /* dialogbackground.png */,
 				9FD8D9B818EB241C00748E3D /* new_york_map_01.png */,
@@ -521,6 +524,7 @@
 				9FD8D9D118EB241C00748E3D /* new_york_map_06.png in Resources */,
 				9FD8D9CD18EB241C00748E3D /* new_york_map_02.png in Resources */,
 				9FD8D9DE18EB241C00748E3D /* new_york_map_19.png in Resources */,
+				9F854B3818EC7E9000EDDB8B /* madisonsqgarden_select.png in Resources */,
 				9FD8D9E318EB242900748E3D /* dialogbackground.png in Resources */,
 				1AFAF8BE16D35E4900DB1158 /* HelloWorld.png in Resources */,
 				9FD8D9D818EB241C00748E3D /* new_york_map_13.png in Resources */,

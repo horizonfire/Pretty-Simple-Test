@@ -36,12 +36,13 @@ private:
     LocationDialog*    m_pLocationDialog;
 
     cocos2d::CCNode*   m_pMapNode;
+    cocos2d::CCSprite* m_pSpriteLandmark;
+    cocos2d::CCPoint   m_ptLandmark;
     cocos2d::CCPoint   m_ptTouchCenter;
     cocos2d::CCPoint   m_vVelocity;
     cocos2d::CCSize    m_mapSize;
 
     cocos2d::CCSet     m_setTouches;
-    bool               m_bIsZooming;
     float              m_fTouchDistance;
     float			   m_fMinScale;
     float              m_fMaxScale;
