@@ -50,7 +50,7 @@ bool LocationDialog::init()
 
     //layout the various elements
     CCPoint ptTextPos = m_pArrowSprite->getPosition();
-    ptTextPos.y += (m_pBackgroundSprite->getContentSize().height + m_pArrowSprite->getContentSize().height) / 2.0f - 1.0f;
+    ptTextPos.y += (m_pBackgroundSprite->getContentSize().height + m_pArrowSprite->getContentSize().height) / 2.0f - 5.0f;
     m_pTextLabel->setPosition(ptTextPos);
     m_pBackgroundSprite->setPosition(ptTextPos);
 
@@ -98,7 +98,7 @@ void LocationDialog::setText(const char* pszString)
 
     //layout the various elements
     CCPoint ptTextPos = m_pArrowSprite->getPosition();
-    ptTextPos.y += (m_pBackgroundSprite->getContentSize().height + m_pArrowSprite->getContentSize().height) / 2.0f - 1.0f;
+    ptTextPos.y += (m_pBackgroundSprite->getContentSize().height + m_pArrowSprite->getContentSize().height) / 2.0f - 5.0f;
     m_pTextLabel->setPosition(ptTextPos);
     m_pBackgroundSprite->setPosition(ptTextPos);
 }
