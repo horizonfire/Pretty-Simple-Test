@@ -146,26 +146,50 @@ void MapViewerScene::update(float delta)
     }
     else if (m_vVelocity.x != 0.0f || m_vVelocity.y != 0.0f)
     {
-        m_vVelocity.x -= 100.0f * delta;
-        m_vVelocity.y -= 100.0f * delta;
+        m_vVelocity.x -= 5.0f * m_vVelocity.x * delta;
+        m_vVelocity.y -= 5.0f * m_vVelocity.y * delta;
 
         //cause resistance when the map is off the edge
-        if (m_pMapNode->getPosition().x < m_fMinMapX - m_fStretchVariance  || m_pMapNode->getPosition().x > m_fMaxMapX + m_fStretchVariance)
+        if (m_pMapNode->getPosition().x < m_fMinMapX   || m_pMapNode->getPosition().x > m_fMaxMapX)
         {
-            m_vVelocity.x = 0.0f;
+            m_vVelocity.x -= 20.0f * m_vVelocity.x * delta;
         }
         
-        if (m_pMapNode->getPosition().y  < m_fMinMapY - m_fStretchVariance || m_pMapNode->getPosition().y > m_fMaxMapY + m_fStretchVariance)
+        if (m_pMapNode->getPosition().y  < m_fMinMapY || m_pMapNode->getPosition().y > m_fMaxMapY)
         {
-            m_vVelocity.y = 0.0f;
+            m_vVelocity.y -= 20.0f * m_vVelocity.y * delta;
         }
         
-        if (ccpLength(m_vVelocity) < 0.4f)
+        if (ccpLength(m_vVelocity) < 400.0f)
         {
             m_vVelocity = CCPointZero;
+            
+            //adjust the map to be within the range again
+            CCPoint ptAdjust = m_pMapNode->getPosition();
+            if (ptAdjust.x < m_fMinMapX)
+            {
+                ptAdjust.x = m_fMinMapX;
+            }
+            else if (ptAdjust.x > m_fMaxMapX)
+            {
+                ptAdjust.x = m_fMaxMapX;
+            }
+
+            if (ptAdjust.y < m_fMinMapY)
+            {
+                ptAdjust.y = m_fMinMapY;
+            }
+            else if (ptAdjust.y > m_fMaxMapY)
+            {
+                ptAdjust.y = m_fMaxMapY;
+            }
+
+            m_pMapNode->runAction(CCEaseInOut::create(CCMoveTo::create(0.25f, ptAdjust), 4.0f));
         }
-        
-        m_pMapNode->setPosition(ccpAdd(m_pMapNode->getPosition(), m_vVelocity * delta));
+        else
+        {
+            m_pMapNode->setPosition(ccpAdd(m_pMapNode->getPosition(), m_vVelocity * delta));
+        }
     }
 }
 
@@ -258,6 +282,8 @@ void MapViewerScene::ccTouchesMoved(CCSet *pTouches, CCEvent *pEvent)
             ptDiffFromNodePos.y *= fScaleDiff;
 
             m_pMapNode->setPosition(ccpSub(m_pMapNode->getPosition(), ptDiffFromNodePos));
+            
+            m_ptLastMapPosition = m_pMapNode->getPosition();
             m_fTouchDistance = fDistance;
         }
 
@@ -316,11 +342,13 @@ void MapViewerScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
         {
             m_pMapNode->runAction(CCEaseInOut::create(CCScaleTo::create(0.25f, m_fMinScale), 4.0f));
             fTargetScale = m_fMinScale;
+            m_vVelocity = CCPointZero;
         }
         else if (m_pMapNode->getScale() > m_fMaxScale)
         {
             m_pMapNode->runAction(CCEaseInOut::create(CCScaleTo::create(0.25f, m_fMaxScale), 4.0f));
             fTargetScale = m_fMaxScale;
+            m_vVelocity = CCPointZero;
         }
         
         m_fMinMapX = ptCenter.x - (m_pMapNode->getContentSize().width  * fTargetScale) / 2.0f + visibleSize.width / 2.0f;
@@ -335,19 +363,23 @@ void MapViewerScene::ccTouchesEnded(CCSet *pTouches, CCEvent *pEvent)
         if (ptAdjust.x < m_fMinMapX)
         {
             ptAdjust.x = m_fMinMapX;
+            m_vVelocity = CCPointZero;
         }
         else if (ptAdjust.x > m_fMaxMapX)
         {
             ptAdjust.x = m_fMaxMapX;
+            m_vVelocity = CCPointZero;
         }
 
         if (ptAdjust.y < m_fMinMapY)
         {
             ptAdjust.y = m_fMinMapY;
+            m_vVelocity = CCPointZero;
         }
         else if (ptAdjust.y > m_fMaxMapY)
         {
             ptAdjust.y = m_fMaxMapY;
+            m_vVelocity = CCPointZero;
         }
 
         m_pMapNode->runAction(CCEaseInOut::create(CCMoveTo::create(0.25f, ptAdjust), 4.0f));
