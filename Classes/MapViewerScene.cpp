@@ -91,6 +91,7 @@ bool MapViewerScene::init()
     // position the sprite on the center of the screen
     CCPoint ptCenter = ccp(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y);
     m_pMapNode->setPosition(ptCenter);
+    m_ptLastMapPosition = ptCenter;
 
     //scale so that largest dimension is used
     float fWidthScale  = visibleSize.width / m_pMapNode->getContentSize().width;
@@ -138,29 +139,34 @@ void MapViewerScene::update(float delta)
     CCPoint ptDialog = m_pMapNode->convertToWorldSpace(ptLandmark);
     m_pLocationDialog->setPosition(ptDialog);
 
-//    if (m_setTouches.count() == 0 && (m_vVelocity.x != 0.0f || m_vVelocity.y != 0.0f))
-//    {
-//        m_vVelocity.x *= 0.85f;
-//        m_vVelocity.y *= 0.85f;
-//
-//        //cause resistance when the map is off the edge
-//        if (m_pMapNode->getPosition().x < m_fMinMapX - m_fStretchVariance  || m_pMapNode->getPosition().x > m_fMaxMapX + m_fStretchVariance)
-//        {
-//            m_vVelocity.x = 0.0f;
-//        }
-//        
-//        if (m_pMapNode->getPosition().y  < m_fMinMapY - m_fStretchVariance || m_pMapNode->getPosition().y > m_fMaxMapY + m_fStretchVariance)
-//        {
-//            m_vVelocity.y = 0.0f;
-//        }
-//        
-//        if (ccpLength(m_vVelocity) < 0.4f)
-//        {
-//            m_vVelocity = CCPointZero;
-//        }
-//        
-//        m_pMapNode->setPosition(ccpAdd(m_pMapNode->getPosition(), m_vVelocity * delta));
-//    }
+    if (m_setTouches.count() != 0)
+    {
+        m_vVelocity = ccpSub(m_pMapNode->getPosition(), m_ptLastMapPosition) / delta;
+        m_ptLastMapPosition = m_pMapNode->getPosition();
+    }
+    else if (m_vVelocity.x != 0.0f || m_vVelocity.y != 0.0f)
+    {
+        m_vVelocity.x -= 100.0f * delta;
+        m_vVelocity.y -= 100.0f * delta;
+
+        //cause resistance when the map is off the edge
+        if (m_pMapNode->getPosition().x < m_fMinMapX - m_fStretchVariance  || m_pMapNode->getPosition().x > m_fMaxMapX + m_fStretchVariance)
+        {
+            m_vVelocity.x = 0.0f;
+        }
+        
+        if (m_pMapNode->getPosition().y  < m_fMinMapY - m_fStretchVariance || m_pMapNode->getPosition().y > m_fMaxMapY + m_fStretchVariance)
+        {
+            m_vVelocity.y = 0.0f;
+        }
+        
+        if (ccpLength(m_vVelocity) < 0.4f)
+        {
+            m_vVelocity = CCPointZero;
+        }
+        
+        m_pMapNode->setPosition(ccpAdd(m_pMapNode->getPosition(), m_vVelocity * delta));
+    }
 }
 
 void MapViewerScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
@@ -177,6 +183,8 @@ void MapViewerScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
     }
     
     m_vVelocity = CCPointZero;
+    m_ptLastMapPosition = m_pMapNode->getPosition();
+
     m_ptTouchCenter = GetAverageLocationInViewTouchSet(&m_setTouches);
     m_fTouchDistance = GetAverageDistanceTouchSet(&m_setTouches);
     
@@ -186,7 +194,6 @@ void MapViewerScene::ccTouchesBegan(CCSet *pTouches, CCEvent *pEvent)
     {
         CCTouch* touch = dynamic_cast<CCTouch*>(*m_setTouches.begin());
         CCPoint ptTouch = m_pMapNode->convertToNodeSpace(touch->getLocation());
-        CCLOG("Testing %f, %f", ptTouch.x, ptTouch.y);
         
         CCPoint ptLandmark = ccp(-m_mapSize.width / 2.0f + m_ptLandmark.x, m_mapSize.height / 2.0f - m_ptLandmark.y);
         if (ccpDistance(ptLandmark, ptTouch) < m_pSpriteLandmark->getContentSize().width / 2.0f)

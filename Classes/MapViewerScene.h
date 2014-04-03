@@ -41,6 +41,8 @@ private:
     cocos2d::CCSprite* m_pSpriteLandmark;
     cocos2d::CCPoint   m_ptLandmark;
     cocos2d::CCPoint   m_ptTouchCenter;
+
+    cocos2d::CCPoint   m_ptLastMapPosition;
     cocos2d::CCPoint   m_vVelocity;
     cocos2d::CCSize    m_mapSize;
 
