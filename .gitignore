@@ -2,3 +2,4 @@ proj.win32/Debug.win32/
 *.sdf
 *.suo
 *.opensdf
+proj.ios/PrettySimpleTest.xcodeproj/project.xcworkspace/xcuserdata
